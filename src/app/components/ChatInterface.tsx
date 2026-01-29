@@ -2,6 +2,9 @@
 
 import { useState, useEffect, useRef } from 'react';
 import axios from 'axios';
+import ReactMarkdown from "react-markdown";
+import remarkGfm from "remark-gfm";
+
 
 type Message = {
   id: string;
@@ -209,16 +212,10 @@ export default function ChatInterface() {
     setIsLoading(true);
 
     try {
-      const currentName = detectedName || userName;
       
       // Envia a mensagem e o nome do usuário para o backend
       const response = await axios.post('http://localhost:8000/chat', {
-        message: inputText,
-        context: currentChat.messages.map(msg => ({ 
-          role: msg.sender === 'user' ? 'user' : 'assistant', 
-          content: msg.text 
-        })),
-        user_name: currentName
+        message: inputText
       });
 
       console.log('Resposta recebida:', response.data);
@@ -361,7 +358,7 @@ export default function ChatInterface() {
             </svg>
           </button>
 
-          <h1 className="text-xl font-semibold text-gray-800">GadoAI Assistant</h1>
+          <h1 className="text-xl font-semibold text-gray-800">AI Analytics Assistant</h1>
           
           {userName && (
             <span className="ml-auto text-sm text-gray-600">
@@ -395,7 +392,9 @@ export default function ChatInterface() {
                     : 'bg-gray-100 text-gray-800 rounded-bl-none'
                 }`}
               >
-                <div className="whitespace-pre-wrap break-words">{message.text}</div>
+                <ReactMarkdown remarkPlugins={[remarkGfm]}>
+                  {message.text}
+                </ReactMarkdown>
                 <div className={`text-xs mt-1 ${
                   message.sender === 'user' ? 'text-blue-100' : 'text-gray-500'
                 }`}>
