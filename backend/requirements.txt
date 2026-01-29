@@ -1,0 +1,27 @@
+# Server
+fastapi
+uvicorn[standard]
+
+# Supabase stack (versões compatíveis)
+supabase
+postgrest
+realtime
+storage3
+gotrue
+
+# Env
+dotenv
+
+# Database
+psycopg2-binary
+sqlalchemy
+
+# Data
+pandas
+pydantic
+
+# LangChain (versões compatíveis entre si)
+langchain
+langchain-community
+langchain-groq
+langchain-core

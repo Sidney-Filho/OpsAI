@@ -1,36 +1,89 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# GadoAI (or New Project Theme)
 
-## Getting Started
+## Project Description
+GadoAI is an AI assistant for managing operations and KPIs in a corporate system. Users can ask questions in natural language about operations, costs, and KPIs. The system uses LangChain + Groq LLM to interpret queries, execute SQL against the database, and return precise, data-driven responses.
 
-First, run the development server:
+Originally focused on livestock management, the project has been adapted to a broader corporate operations and KPIs theme, keeping all AI query and analysis logic intact.
 
-```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+## Features
+
+- KPI Queries: Total operations, total cost, average cost, completed, failed, and in-progress operations.
+- Natural Language Chat: Ask short or medium-length questions about system data.
+- Off-topic Filtering: The AI responds only to questions relevant to operations/KPIs.
+- Interactive Frontend: Built with React + TailwindCSS for easy interaction.
+- Consistency Verification: Answers match real database data.
+
+## Project Structure
+
+```
+backend/
+│
+├── app/
+│ ├── core/ # Configuration and logging
+│ ├── db/ # Database scripts and connection
+│ ├── services/ # SQL & LLM services
+│ ├── api/ # FastAPI endpoints
+│ ├── prompts/ # LLM prompts and examples
+│ └── utils/ # Helper functions
+│
+├── scripts/ # Seed and auxiliary scripts
+├── tests/ # Unit tests
+├── .env # Environment variables
+├── requirements.txt # Python dependencies
+└── README.md # Project documentation
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+## Technologies
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+- Python 3.12+
+- FastAPI → backend and API
+- PostgreSQL / Supabase → database
+- LangChain + Groq → language model for SQL queries
+- React / TailwindCSS → frontend chat interface
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+## Installation & Setup
 
-## Learn More
+Clone the repository:
 
-To learn more about Next.js, take a look at the following resources:
+```
+git clone <REPO_URL>
+cd backend
+```
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+Install Python dependencies:
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+```
+pip install -r requirements.txt
+```
 
-## Deploy on Vercel
+Configure environment variables in .env:
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+```
+SUPABASE_DB_URI=<Your database URI>
+GROQ_API_KEY=<Your Groq API key>
+```
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+Start the API:
+
+```
+uvicorn main:app --reload --host 0.0.0.0 --port 8000
+```
+
+Open the React frontend and start chatting with the AI assistant.
+
+## Example Questions
+
+"What is the total cost of operations?"
+"How many operations have been completed?"
+"How many operations are in progress?"
+"What is the average cost per operation?"
+
+## Contributing
+
+Contributions are welcome!
+
+If you want to test or improve the AI responses, feel free to open issues or submit pull requests.
+
+## License
+
+This project is licensed under the MIT License.

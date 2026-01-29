@@ -1,39 +1,10 @@
 "use client";
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import axios from 'axios';
+import ReactMarkdown from "react-markdown";
+import remarkGfm from "remark-gfm";
 
-// Defina um tipo para os dados retornados pela API
-type Inseminacao = {
-  id: number;
-  FAZENDA: string;
-  ESTADO: string;
-  MUNICÍPIO: string;
-  "Nº ANIMAL": number;
-  LOTE: string;
-  RAÇA: string;
-  CATEGORIA: string;
-  ECC: number;
-  CICLICIDADE: number;
-  PROTOCOLO: string;
-  "IMPLANTE P4": string;
-  EMPRESA: string;
-  "GnRH NA IA": number;
-  "PGF NO D0": number;
-  "Dose PGF retirada": string;
-  "Marca PGF retirada": string;
-  "Dose CE": string;
-  eCG: string;
-  "DOSE eCG": string;
-  TOURO: string;
-  "RAÇA TOURO": string;
-  "EMPRESA TOURO": string;
-  INSEMINADOR: string;
-  "Nº da IATF": string;
-  DG: number;
-  "VAZIA COM OU SEM CL": number;
-  PERDA: number;
-};
 
 type Message = {
   id: string;
@@ -47,7 +18,7 @@ type Chat = {
   preview: string;
   timestamp: Date;
   messages: Message[];
-  userName?: string; // Adicionado campo para nome do usuário
+  userName?: string;
 };
 
 type DeleteModalProps = {
@@ -63,7 +34,7 @@ function DeleteModal({ isOpen, chatToDelete, onConfirm, onCancel }: DeleteModalP
   return (
     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
       <div className="bg-white rounded-lg p-6 max-w-sm w-full">
-        <h3 className="text-black text-lg font-semibold mb-4">Delete Chat</h3>
+        <h3 className="text-black text-lg font-semibold mb-4">Deletar Chat</h3>
         <p className="text-gray-600 mb-6">
           Tem certeza que deseja deletar <strong>{chatToDelete.preview}</strong>? Você não pode reverter esta ação.
         </p>
@@ -128,7 +99,7 @@ const extractUserName = (message: string): string | null => {
 export default function ChatInterface() {
   const [currentChat, setCurrentChat] = useState<Chat>({
     id: generateId(),
-    preview: 'Novo Chat',
+    preview: 'New Chat',
     timestamp: new Date(),
     messages: []
   });
@@ -138,6 +109,16 @@ export default function ChatInterface() {
   const [chatToDelete, setChatToDelete] = useState<Chat | null>(null);
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const [userName, setUserName] = useState<string>('');
+  const messagesEndRef = useRef<HTMLDivElement>(null);
+
+  // Auto-scroll para a última mensagem
+  const scrollToBottom = () => {
+    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
+  };
+
+  useEffect(() => {
+    scrollToBottom();
+  }, [currentChat.messages, isLoading]);
 
   // Carregar o nome do usuário do localStorage quando o componente é montado
   useEffect(() => {
@@ -173,7 +154,7 @@ export default function ChatInterface() {
       preview: 'Novo Chat',
       timestamp: new Date(),
       messages: [],
-      userName: userName // Manter o nome do usuário no novo chat
+      userName: userName
     };
 
     setCurrentChat(newChat);
@@ -221,9 +202,9 @@ export default function ChatInterface() {
 
     const updatedChat = {
       ...currentChat,
-      preview: inputText,
+      preview: inputText.substring(0, 50) + (inputText.length > 50 ? '...' : ''),
       messages: [...currentChat.messages, userMessage],
-      userName: detectedName || userName // Atualizar o nome no chat se for detectado
+      userName: detectedName || userName
     };
 
     setCurrentChat(updatedChat);
@@ -231,19 +212,15 @@ export default function ChatInterface() {
     setIsLoading(true);
 
     try {
-      // Usar o nome do usuário atual ou o recém-detectado
-      const currentName = detectedName || userName;
       
-      // Envia o histórico da conversa junto com a mensagem e o nome do usuário
+      // Envia a mensagem e o nome do usuário para o backend
       const response = await axios.post('http://localhost:8000/chat', {
-        message: inputText,
-        context: currentChat.messages.map(msg => ({ role: msg.sender, content: msg.text })),
-        user_name: currentName // Envia o nome do usuário para o backend
+        message: inputText
       });
 
-      console.log('Resposta:', response.data);
+      console.log('Resposta recebida:', response.data);
 
-      // Verifica se temos uma resposta do tipo { response: string, data: any[] }
+      // A resposta do backend vem como { response: string }
       if (response.data.response) {
         const aiMessage: Message = {
           id: generateId(),
@@ -256,56 +233,15 @@ export default function ChatInterface() {
           ...prev,
           messages: [...prev.messages, aiMessage]
         }));
-      } else if (Array.isArray(response.data)) {
-        // Se for array direto, formata os dados (compatibilidade)
-        const formattedResponse = response.data
-          .map((item: Inseminacao) => {
-            return `
-              Fazenda: ${item.FAZENDA},
-              Estado: ${item.ESTADO},
-              Município: ${item.MUNICÍPIO},
-              Nº Animal: ${item["Nº ANIMAL"]},
-              Raça: ${item.RAÇA},
-              Categoria: ${item.CATEGORIA},
-              ECC: ${item.ECC},
-              Protocolo: ${item.PROTOCOLO},
-              Inseminador: ${item.INSEMINADOR},
-              Perda: ${item.PERDA === 1 ? "Sim" : "Não"}
-            `;
-          })
-          .join("\n\n");
-        
-        const aiMessage: Message = {
-          id: generateId(),
-          text: formattedResponse,
-          sender: 'ai',
-          timestamp: new Date()
-        };
-
-        setCurrentChat(prev => ({
-          ...prev,
-          messages: [...prev.messages, aiMessage]
-        }));
       } else {
-        // Fallback para objetos desconhecidos
-        const aiMessage: Message = {
-          id: generateId(),
-          text: "Recebi sua mensagem, mas não sei como processar a resposta.",
-          sender: 'ai',
-          timestamp: new Date()
-        };
-
-        setCurrentChat(prev => ({
-          ...prev,
-          messages: [...prev.messages, aiMessage]
-        }));
+        throw new Error('Resposta inválida do servidor');
       }
     } catch (error) {
       console.error('Erro ao enviar mensagem:', error);
       
       const errorMessage: Message = {
         id: generateId(),
-        text: "Desculpe, houve um erro ao conectar com o servidor.",
+        text: "Desculpe, houve um erro ao conectar com o servidor. Por favor, tente novamente.",
         sender: 'ai',
         timestamp: new Date()
       };
@@ -346,7 +282,7 @@ export default function ChatInterface() {
           onClick={startNewChat}
           className="w-full mb-4 px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition-colors"
         >
-          Novo Chat
+          New Chat
         </button>
 
         {userName && (
@@ -355,10 +291,10 @@ export default function ChatInterface() {
           </div>
         )}
 
-        <div className="space-y-2">
-          {[currentChat, ...pastChats].map((chat, index) => (
+        <div className="space-y-2 overflow-y-auto max-h-[calc(100vh-200px)]">
+          {[currentChat, ...pastChats].map((chat) => (
             <div
-              key={index}
+              key={chat.id}
               className={`group relative rounded-lg text-black ${
                 chat.id === currentChat.id
                   ? 'bg-blue-100'
@@ -422,7 +358,7 @@ export default function ChatInterface() {
             </svg>
           </button>
 
-          <h1 className="text-xl font-semibold text-gray-800">AI Assistant</h1>
+          <h1 className="text-xl font-semibold text-gray-800">AI Analytics Assistant</h1>
           
           {userName && (
             <span className="ml-auto text-sm text-gray-600">
@@ -444,9 +380,9 @@ export default function ChatInterface() {
             </div>
           )}
 
-          {currentChat.messages.map((message, index) => (
+          {currentChat.messages.map((message) => (
             <div
-              key={index}
+              key={message.id}
               className={`flex ${message.sender === 'user' ? 'justify-end' : 'justify-start'}`}
             >
               <div
@@ -456,7 +392,9 @@ export default function ChatInterface() {
                     : 'bg-gray-100 text-gray-800 rounded-bl-none'
                 }`}
               >
-                <div style={{ whiteSpace: 'pre-line' }}>{message.text}</div>
+                <ReactMarkdown remarkPlugins={[remarkGfm]}>
+                  {message.text}
+                </ReactMarkdown>
                 <div className={`text-xs mt-1 ${
                   message.sender === 'user' ? 'text-blue-100' : 'text-gray-500'
                 }`}>
@@ -465,17 +403,20 @@ export default function ChatInterface() {
               </div>
             </div>
           ))}
+          
           {isLoading && (
             <div className="flex justify-start">
               <div className="max-w-[80%] p-3 rounded-lg bg-gray-100 text-gray-800 rounded-bl-none">
                 <div className="flex space-x-2">
                   <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce" />
-                  <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce delay-100" />
-                  <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce delay-200" />
+                  <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce" style={{ animationDelay: '0.1s' }} />
+                  <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce" style={{ animationDelay: '0.2s' }} />
                 </div>
               </div>
             </div>
           )}
+          
+          <div ref={messagesEndRef} />
         </div>
 
         {/* Input de formulário */}
