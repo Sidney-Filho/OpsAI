@@ -1,4 +1,4 @@
-# Insights AI
+# OpsAI
 
 ## Project Description
 GadoAI is an AI assistant for managing operations and KPIs in a corporate system. Users can ask questions in natural language about operations, costs, and KPIs. The system uses LangChain + Groq LLM to interpret queries, execute SQL against the database, and return precise, data-driven responses.
