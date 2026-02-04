@@ -34,22 +34,22 @@ function DeleteModal({ isOpen, chatToDelete, onConfirm, onCancel }: DeleteModalP
   return (
     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
       <div className="bg-white rounded-lg p-6 max-w-sm w-full">
-        <h3 className="text-black text-lg font-semibold mb-4">Deletar Chat</h3>
+        <h3 className="text-black text-lg font-semibold mb-4">Delete Chat</h3>
         <p className="text-gray-600 mb-6">
-          Tem certeza que deseja deletar <strong>{chatToDelete.preview}</strong>? Você não pode reverter esta ação.
+          Are you sure you want to delete <strong>{chatToDelete.preview}</strong>? You cannot undo this action.
         </p>
         <div className="flex space-x-3 justify-end">
           <button
             onClick={onCancel}
             className="px-4 py-2 text-gray-600 hover:bg-gray-100 rounded-lg transition-colors"
           >
-            Cancelar
+            Cancel
           </button>
           <button
             onClick={onConfirm}
             className="px-4 py-2 bg-red-500 text-white rounded-lg hover:bg-red-600 transition-colors"
           >
-            Deletar
+            Delete
           </button>
         </div>
       </div>
@@ -151,7 +151,7 @@ export default function ChatInterface() {
 
     const newChat = {
       id: generateId(),
-      preview: 'Novo Chat',
+      preview: 'New Chat',
       timestamp: new Date(),
       messages: [],
       userName: userName
@@ -218,7 +218,7 @@ export default function ChatInterface() {
         message: inputText
       });
 
-      console.log('Resposta recebida:', response.data);
+      console.log('Response data:', response.data);
 
       // A resposta do backend vem como { response: string }
       if (response.data.response) {
@@ -234,14 +234,14 @@ export default function ChatInterface() {
           messages: [...prev.messages, aiMessage]
         }));
       } else {
-        throw new Error('Resposta inválida do servidor');
+        throw new Error('Invalid response from server');
       }
     } catch (error) {
       console.error('Erro ao enviar mensagem:', error);
       
       const errorMessage: Message = {
         id: generateId(),
-        text: "Desculpe, houve um erro ao conectar com o servidor. Por favor, tente novamente.",
+        text: "Sorry, there was an error connecting to the server. Please try again.",
         sender: 'ai',
         timestamp: new Date()
       };
@@ -371,11 +371,11 @@ export default function ChatInterface() {
         <div className="flex-1 overflow-y-auto p-4 space-y-4">
           {currentChat.messages.length === 0 && (
             <div className="flex flex-col items-center justify-center h-full text-center text-gray-500">
-              <h2 className="text-xl font-medium mb-2">Bem-vindo ao Assistente de Inseminação</h2>
+              <h2 className="text-xl font-medium mb-2">Welcome to AI Analytics Assistant</h2>
               <p className="max-w-md">
                 {userName 
-                  ? `Olá ${userName}! Como posso ajudar você hoje?` 
-                  : "Para uma experiência personalizada, por favor se apresente (exemplo: 'Me chamo João')"}
+                  ? `Hello ${userName}! How can I assist you today?` 
+                  : "To get a personalized experience, please introduce yourself (e.g., 'My name is John')"}
               </p>
             </div>
           )}
@@ -426,7 +426,7 @@ export default function ChatInterface() {
               type="text"
               value={inputText}
               onChange={(e) => setInputText(e.target.value)}
-              placeholder={userName ? "Digite sua mensagem..." : "Diga seu nome ou faça uma pergunta..."}
+              placeholder={userName ? "Write a message..." : "Say your name or ask a question..."}
               className="text-black flex-1 p-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
               disabled={isLoading}
             />
@@ -441,7 +441,7 @@ export default function ChatInterface() {
                 transition-colors duration-200
               `}
             >
-              Enviar
+              Send
             </button>
           </div>
         </form>
